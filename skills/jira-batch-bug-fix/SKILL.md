@@ -176,33 +176,36 @@ Analysis docs live in `shared-docs/bug_fix/` — if `shared-docs` is itself a gi
 
 ### Step 6: One PR per repo to develop
 
-After all tickets touching a repo are fixed, check for conflicts against the target branch **before** creating the PR:
+**Merge direction is one-way, always.** NEVER merge `develop` (or any target branch) into the main-ticket round branch — not even as a `--no-commit` dry-run. The round branch is read-only in this step. Conflict detection and resolution both happen on a temporary branch cut FROM `origin/develop`, by merging the round branch INTO it.
+
+After all tickets touching a repo are fixed:
 
 ```bash
 git fetch origin develop
-git merge --no-commit --no-ff origin/develop   # dry-run on the round branch
-```
-
-**No conflicts** → `git merge --abort` (or keep the merge if develop moved significantly), then push and PR the round branch directly:
-
-```bash
-git push -u origin <round-branch>
-gh pr create --base develop --title "<MAIN_TICKET_ID> Fix <label> bugs" --body "..."
-```
-
-**Conflicts** → do NOT resolve them on the round branch. Cut a temporary merge branch off the target branch, merge the round branch into it, resolve there, and PR the temp branch instead:
-
-```bash
-git merge --abort
+git push -u origin <round-branch>                 # round branch is final; push it as-is
 git checkout -b <username>/from-develop/<MAIN_TICKET_ID>-merge origin/develop
-git merge <round-branch>
+git merge <round-branch>                          # detect AND resolve in one place
+```
+
+**Merge is clean** → the temp branch isn't needed. Delete it and PR the round branch directly:
+
+```bash
+git checkout <round-branch>
+git branch -D <username>/from-develop/<MAIN_TICKET_ID>-merge
+gh pr create --base develop --head <round-branch> --title "<MAIN_TICKET_ID> Fix <label> bugs" --body "..."
+```
+
+**Merge conflicts** → resolve them on the temp branch (the round branch stays untouched), then PR the temp branch:
+
+```bash
 # resolve conflicts, git add the resolved files, then:
 git commit -m "<MAIN_TICKET_ID> Merge <round-branch> into develop [ez-ai-assisted]"
 git push -u origin <username>/from-develop/<MAIN_TICKET_ID>-merge
-gh pr create --base develop --title "<MAIN_TICKET_ID> Fix <label> bugs" --body "..."
+gh pr create --base develop --head <username>/from-develop/<MAIN_TICKET_ID>-merge --title "<MAIN_TICKET_ID> Fix <label> bugs" --body "..."
+git checkout <round-branch>   # leave the repo on the round branch for resume
 ```
 
-(htm-backend: the merge commit also takes `--no-verify`, like all its commits.) Re-run ESLint/build on the merged result before pushing (conflict resolution can break lint). State every conflict you resolved (file + how) in the PR body and the hand-off report, then switch the repo back to the round branch so a later resume still finds it checked out.
+(htm-backend: the merge commit also takes `--no-verify`, like all its commits.) After resolving conflicts, re-run ESLint/build on the merged result before pushing (conflict resolution can break lint). State every conflict you resolved (file + how) in the PR body and the hand-off report.
 
 PR body must list every fixed ticket (key + one-line fix summary) and a test plan. Do NOT add any AI attribution trailer to commits or the PR body — hireEZ standards use the `[ez-ai-assisted]` commit marker only.
 
@@ -245,3 +248,4 @@ If a ticket has no direct transition to that status, list its available transiti
 | "Skip the scope question, user said fix the label" | Always ask all-or-subset after listing tickets. The user may want a partial round. |
 | "Looks like intended behavior, just skip it" / "ticket says bug, so fix it" | Neither. A NOT-A-BUG verdict goes through the Step 4b gate: summarize the evidence and let the USER decide fix-anyway vs drop. |
 | "MCP tools missing, improvise via curl for everything" | REST is for attachment download only. Jira search/read/transition must go through the Atlassian MCP — run Step 0 preflight and get it connected first. |
+| "Merge develop into the round branch to sync/check conflicts" | NEVER. Merge direction is one-way: round branch → develop-side temp branch. The round branch never receives develop's history. |
