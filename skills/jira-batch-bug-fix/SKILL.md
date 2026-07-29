@@ -16,9 +16,21 @@ Ask the user if missing (both are required before doing anything):
 1. **Jira label** (used to find bug tickets)
 2. **Main ticket ID** (e.g. `HT5-272` — used to locate the working branches)
 
-Get the Jira cloudId once via `getAccessibleAtlassianResources` and reuse it.
+## Step 0 — Preflight (all three must pass before Step 1)
 
-**Prerequisite — Jira REST credentials for attachment download.** The Atlassian MCP server cannot serve attachment binaries (screenshots), so images are downloaded via the Jira REST API. Check before starting:
+**1. Atlassian MCP connected.** Every Jira read/transition in this skill goes through the Atlassian MCP server — without it the skill cannot run. Probe by calling `getAccessibleAtlassianResources`:
+
+- **Succeeds** → save the cloudId and reuse it for every later call.
+- **The tool does not exist in this session** (no Atlassian MCP tools at all) → the MCP server is not installed. STOP and tell the user to connect it, then start a new session:
+
+  ```bash
+  claude mcp add --transport sse atlassian https://mcp.atlassian.com/v1/sse
+  ```
+
+  (or add the Atlassian connector via `/mcp` / claude.ai connectors, whichever they use).
+- **Only an `authenticate` tool exists, or the probe fails with an auth error** → the server is installed but not authorized. Call the `authenticate` tool, give the user the OAuth URL to open in their browser, and complete the flow (submit the callback URL if the tool requires it). Re-probe until it succeeds.
+
+**2. Jira REST credentials** — the MCP server cannot serve attachment binaries (screenshots), so images are downloaded via the Jira REST API:
 
 ```bash
 [ -n "$JIRA_EMAIL" ] && [ -n "$JIRA_API_TOKEN" ] && echo OK || echo MISSING
@@ -32,6 +44,10 @@ export JIRA_API_TOKEN="<token>"
 ```
 
 Never hardcode or echo the token value.
+
+**3. GitHub CLI authenticated** (needed for PR creation): `gh auth status`. If not logged in, stop and ask the user to run `gh auth login`.
+
+Report all failed checks together in one message (don't make the user fix them one at a time), then stop until they're resolved.
 
 **Resuming an interrupted round:** if a previous run died mid-round (API error, session loss), re-run with the same label + main ticket. Existing `shared-docs/bug_fix/<TICKET>.md` docs, git log on the round branches, and current Jira statuses show what was already done — skip completed tickets, continue from the first unfinished one.
 
@@ -228,3 +244,4 @@ If a ticket has no direct transition to that status, list its available transiti
 | "Fix tickets one by one, parallel is risky" | Analysis already serialized the risk: overlapping-file tickets run sequentially, the rest MUST run as parallel subagents in one message. |
 | "Skip the scope question, user said fix the label" | Always ask all-or-subset after listing tickets. The user may want a partial round. |
 | "Looks like intended behavior, just skip it" / "ticket says bug, so fix it" | Neither. A NOT-A-BUG verdict goes through the Step 4b gate: summarize the evidence and let the USER decide fix-anyway vs drop. |
+| "MCP tools missing, improvise via curl for everything" | REST is for attachment download only. Jira search/read/transition must go through the Atlassian MCP — run Step 0 preflight and get it connected first. |

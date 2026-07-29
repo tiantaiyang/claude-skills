@@ -33,7 +33,13 @@ Plugins update via `/plugin` → manage.
 
 ## Prerequisites for jira-batch-bug-fix
 
-- **Atlassian MCP server** connected in Claude Code (Jira read/transition goes through it).
+- **Atlassian MCP server** connected in Claude Code (Jira read/transition goes through it). The skill checks this on startup and walks you through connecting if missing:
+
+  ```bash
+  claude mcp add --transport sse atlassian https://mcp.atlassian.com/v1/sse
+  ```
+
+  then complete the OAuth authorization in your browser on first use.
 - **Jira REST credentials** for attachment (screenshot) download, in your shell profile:
 
   ```bash
