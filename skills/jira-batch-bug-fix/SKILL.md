@@ -8,7 +8,7 @@ description: Use when the user asks to batch-fix Jira bugs found by a Jira label
 Batch-analyze and fix all unresolved Jira bug tickets that carry a given label, on the code branches belonging to a main (parent) ticket. Two phases:
 
 - **Phase 1 (fix round)**: find bugs → user picks scope → prepare workspace → analyze each → transition all → fix in parallel (one subagent per ticket) → PR to `develop` → STOP and wait for the user's test feedback.
-- **Phase 2 (after user says tests passed)**: transition all fixed tickets to `TEST SERVER(VERIFYING)`.
+- **Phase 2 (after user says tests passed)**: transition all fixed tickets to `TEST SERVER(VERIFYING)` and reassign each to its reporter.
 
 ## Required inputs
 
@@ -224,9 +224,10 @@ Then **end the task**. Do NOT transition tickets further. Wait for the user's te
 
 Triggered when the user says the tests passed (e.g. "测试通过"). Load the ticket list from `shared-docs/bug_fix/_round-<MAIN_TICKET_ID>.md` (ask the user for the main ticket ID if unclear which round). For **every ticket fixed in that round**:
 
-1. `getTransitionsForJiraIssue` → find transition to **TEST SERVER(VERIFYING)**.
-2. `transitionJiraIssue`.
-3. Report the final status of each ticket.
+1. `getJiraIssue` with fields `["reporter", "assignee", "status"]` — capture the reporter's `accountId`.
+2. `getTransitionsForJiraIssue` → find transition to **TEST SERVER(VERIFYING)** → `transitionJiraIssue`.
+3. **Reassign to the reporter**: `editJiraIssue` with `fields: {"assignee": {"accountId": "<reporter-accountId>"}}` — the reporter verifies on the test server, so the ticket goes back to them. Do this for every transitioned ticket; if setting the assignee fails, report which ticket and why instead of silently continuing.
+4. Report each ticket's final status + assignee.
 
 If a ticket has no direct transition to that status, list its available transitions and ask the user instead of guessing a multi-hop path.
 
