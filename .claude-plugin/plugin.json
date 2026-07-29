@@ -1,0 +1,8 @@
+{
+  "name": "jira-batch-bug-fix",
+  "description": "Batch-analyze and fix Jira bugs found by label under a main ticket: workspace prep, per-ticket analysis docs, parallel subagent fixes, PRs to develop, and two-phase Jira status transitions.",
+  "version": "1.0.0",
+  "author": {
+    "name": "tiantaiyang"
+  }
+}
