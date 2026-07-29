@@ -58,10 +58,10 @@ Report all failed checks together in one message (don't make the user fix them o
 Use `searchJiraIssuesUsingJql`:
 
 ```
-labels = "<LABEL>" AND status IN (Open, Reopened) ORDER BY key ASC
+labels = "<LABEL>" AND status IN (Open, Reopened) AND assignee = currentUser() ORDER BY key ASC
 ```
 
-Example: `labels = "bug_0730_customreport" AND status IN (Open, Reopened) ORDER BY key ASC`. Only Open/Reopened tickets are picked up — anything already in progress or beyond is excluded.
+Example: `labels = "bug_0730_customreport" AND status IN (Open, Reopened) AND assignee = currentUser() ORDER BY key ASC`. Only Open/Reopened tickets **assigned to the current user** are picked up — other people's tickets and anything already in progress or beyond are excluded.
 
 If zero tickets, stop and report.
 
