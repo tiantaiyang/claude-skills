@@ -6,23 +6,36 @@ Reusable [Claude Code](https://claude.com/claude-code) skills.
 
 | Skill | What it does |
 |---|---|
+| [`commit-pr`](skills/commit-pr/SKILL.md) | Commit the current branch in **one** repo, push it, and open a PR. Default target is `develop`. Merge direction is one-way: conflicts are resolved on a temp branch cut from the target — the working branch never receives the target's history. |
 | [`jira-batch-bug-fix`](skills/jira-batch-bug-fix/SKILL.md) | Batch-analyze and fix Jira bugs found by a label under a main ticket: cleans the workspace, checks out the main ticket's branches, writes a per-ticket analysis doc, fixes bugs in parallel with one subagent per ticket, opens PRs to `develop`, and handles the two-phase Jira status transitions (`DEV IN PROGRESS` → `TEST SERVER(VERIFYING)`). |
 
 ## Install
 
 ### Option 1 — one-line script (simplest)
 
-Copies every skill into `~/.claude/skills/` (overwrites same-named skills):
+Install every skill into `~/.claude/skills/` (overwrites same-named skills):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/tiantaiyang/claude-skills/main/install.sh | bash
 ```
 
-Re-run the same command any time to update. Restart Claude Code afterwards.
+Install only `commit-pr`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/tiantaiyang/claude-skills/main/install.sh | bash -s commit-pr
+```
+
+Cursor (same script, different dest):
+
+```bash
+CLAUDE_SKILLS_DIR="$HOME/.cursor/skills" curl -fsSL https://raw.githubusercontent.com/tiantaiyang/claude-skills/main/install.sh | bash -s commit-pr
+```
+
+Re-run the same command any time to update. Restart Claude Code / Cursor afterwards.
 
 ### Option 2 — Claude Code plugin
 
-Inside Claude Code:
+Inside Claude Code. This marketplace plugin ships **every** skill in this repo:
 
 ```
 /plugin marketplace add tiantaiyang/claude-skills
@@ -31,7 +44,25 @@ Inside Claude Code:
 
 Plugins update via `/plugin` → manage.
 
-## Prerequisites for jira-batch-bug-fix
+---
+
+## commit-pr
+
+Commit whatever is in one repo's working tree, push the current branch, and open a PR. Requires `gh` authenticated (`gh auth login`).
+
+```
+/commit-pr <repo>                        → PR to develop
+/commit-pr <repo> 到 master 分支          → PR to master
+/commit-pr <repo> to <branch>            → PR to <branch>
+```
+
+e.g. `/commit-pr ez-report-agent` or `/commit-pr htm-backend 到 master 分支`
+
+---
+
+## jira-batch-bug-fix
+
+### Prerequisites
 
 - **Atlassian MCP server** connected in Claude Code (Jira read/transition goes through it). The skill checks this on startup and walks you through connecting if missing:
 
@@ -49,7 +80,7 @@ Plugins update via `/plugin` → manage.
 
 - `gh` CLI authenticated (PR creation).
 
-## Usage
+### Usage
 
 ```
 /jira-batch-bug-fix label <your-label> 主ticket <MAIN-TICKET-ID>

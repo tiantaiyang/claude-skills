@@ -7,7 +7,7 @@
     {
       "name": "jira-batch-bug-fix",
       "source": "./",
-      "description": "Batch-analyze and fix Jira bugs found by label under a main ticket: workspace prep, per-ticket analysis docs, parallel subagent fixes, PRs to develop, and two-phase Jira status transitions."
+      "description": "hireEZ Claude Code skills catalog: commit-pr (one-repo commit + one-way PR) and jira-batch-bug-fix (batch-analyze and fix Jira bugs by label)."
     }
   ]
 }
