@@ -13,25 +13,19 @@ Reusable [Claude Code](https://claude.com/claude-code) skills.
 
 ### Option 1 — one-line script (simplest)
 
-Install every skill into `~/.claude/skills/` (overwrites same-named skills):
+Install only `commit-pr` (Claude Code `~/.claude/skills/`; also Cursor `~/.cursor/skills/` if Cursor is installed):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/tiantaiyang/claude-skills/main/install.sh | bash
+curl -fsSL https://github.com/tiantaiyang/claude-skills/raw/refs/heads/main/install.sh | bash -s commit-pr
 ```
 
-Install only `commit-pr` into Claude Code (`~/.claude/skills/`):
+Install every skill:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/tiantaiyang/claude-skills/main/install.sh | bash -s commit-pr
+curl -fsSL https://github.com/tiantaiyang/claude-skills/raw/refs/heads/main/install.sh | bash
 ```
 
-Install only `commit-pr` into Cursor (`~/.cursor/skills/`):
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/tiantaiyang/claude-skills/main/install.sh | bash -s commit-pr --cursor
-```
-
-Re-run the same command any time to update. Restart Claude Code / Cursor afterwards.
+Cursor only: append `--cursor`. Custom dest: `--dest DIR`. Re-run the same command any time to update, then restart Claude Code / Cursor.
 
 ### Option 2 — Claude Code plugin
 

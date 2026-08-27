@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 # One-line installer: copies skills from this repo into ~/.claude/skills/
-#   curl -fsSL https://raw.githubusercontent.com/tiantaiyang/claude-skills/main/install.sh | bash
-#   curl -fsSL https://raw.githubusercontent.com/tiantaiyang/claude-skills/main/install.sh | bash -s commit-pr
-#   curl -fsSL https://raw.githubusercontent.com/tiantaiyang/claude-skills/main/install.sh | bash -s commit-pr --cursor
+# (and ~/.cursor/skills if Cursor is present).
+#   curl -fsSL https://github.com/tiantaiyang/claude-skills/raw/refs/heads/main/install.sh | bash
+#   curl -fsSL https://github.com/tiantaiyang/claude-skills/raw/refs/heads/main/install.sh | bash -s commit-pr
 set -euo pipefail
 
 REPO="tiantaiyang/claude-skills"
 BRANCH="${CLAUDE_SKILLS_BRANCH:-main}"
-DEST="${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}"
 WANTED=()
+DESTS=()
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --cursor)
-      DEST="$HOME/.cursor/skills"
+      DESTS=("$HOME/.cursor/skills")
       shift
       ;;
     --dest)
@@ -21,14 +21,15 @@ while [ $# -gt 0 ]; do
         echo "ERROR: --dest requires a path" >&2
         exit 1
       fi
-      DEST="$2"
+      DESTS=("$2")
       shift 2
       ;;
     --help|-h)
       echo "Usage: bash -s [--cursor] [--dest DIR] [skill-name ...]"
       echo "  no skill names  install every skill"
-      echo "  --cursor        install into ~/.cursor/skills"
-      echo "  --dest DIR      install into DIR (overrides --cursor)"
+      echo "  default dests   ~/.claude/skills, and ~/.cursor/skills if ~/.cursor exists"
+      echo "  --cursor        install only into ~/.cursor/skills"
+      echo "  --dest DIR      install only into DIR"
       exit 0
       ;;
     --)
@@ -48,11 +49,22 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+if [ ${#DESTS[@]} -eq 0 ]; then
+  if [ -n "${CLAUDE_SKILLS_DIR:-}" ]; then
+    DESTS=("$CLAUDE_SKILLS_DIR")
+  else
+    DESTS=("$HOME/.claude/skills")
+    if [ -d "$HOME/.cursor" ]; then
+      DESTS+=("$HOME/.cursor/skills")
+    fi
+  fi
+fi
+
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
 echo "Downloading ${REPO}@${BRANCH} ..."
-curl -fsSL "https://github.com/${REPO}/archive/refs/heads/${BRANCH}.tar.gz" | tar -xz -C "$TMP"
+curl -fsSL "https://codeload.github.com/${REPO}/tar.gz/${BRANCH}" | tar -xz -C "$TMP"
 
 SRC="$TMP/claude-skills-${BRANCH}/skills"
 if [ ! -d "$SRC" ]; then
@@ -108,18 +120,20 @@ should_install() {
   return 1
 }
 
-mkdir -p "$DEST"
 installed=0
-for name in "${available[@]}"; do
-  if ! should_install "$name"; then
-    continue
-  fi
-  rm -rf "${DEST:?}/${name}"
-  cp -R "$SRC/$name" "$DEST/$name"
-  echo "Installed skill: $name -> $DEST/$name"
-  installed=$((installed + 1))
+for DEST in "${DESTS[@]}"; do
+  mkdir -p "$DEST"
+  for name in "${available[@]}"; do
+    if ! should_install "$name"; then
+      continue
+    fi
+    rm -rf "${DEST:?}/${name}"
+    cp -R "$SRC/$name" "$DEST/$name"
+    echo "Installed skill: $name -> $DEST/$name"
+    installed=$((installed + 1))
+  done
 done
 
 echo ""
-echo "Done ($installed skill(s) installed to $DEST)."
+echo "Done ($installed copy(ies) installed)."
 echo "Restart Claude Code / Cursor or start a new session to pick them up."
