@@ -19,16 +19,16 @@ Install every skill into `~/.claude/skills/` (overwrites same-named skills):
 curl -fsSL https://raw.githubusercontent.com/tiantaiyang/claude-skills/main/install.sh | bash
 ```
 
-Install only `commit-pr`:
+Install only `commit-pr` into Claude Code (`~/.claude/skills/`):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/tiantaiyang/claude-skills/main/install.sh | bash -s commit-pr
 ```
 
-Cursor (same script, different dest):
+Install only `commit-pr` into Cursor (`~/.cursor/skills/`):
 
 ```bash
-CLAUDE_SKILLS_DIR="$HOME/.cursor/skills" curl -fsSL https://raw.githubusercontent.com/tiantaiyang/claude-skills/main/install.sh | bash -s commit-pr
+curl -fsSL https://raw.githubusercontent.com/tiantaiyang/claude-skills/main/install.sh | bash -s commit-pr --cursor
 ```
 
 Re-run the same command any time to update. Restart Claude Code / Cursor afterwards.

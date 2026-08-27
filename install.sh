@@ -2,12 +2,51 @@
 # One-line installer: copies skills from this repo into ~/.claude/skills/
 #   curl -fsSL https://raw.githubusercontent.com/tiantaiyang/claude-skills/main/install.sh | bash
 #   curl -fsSL https://raw.githubusercontent.com/tiantaiyang/claude-skills/main/install.sh | bash -s commit-pr
+#   curl -fsSL https://raw.githubusercontent.com/tiantaiyang/claude-skills/main/install.sh | bash -s commit-pr --cursor
 set -euo pipefail
 
 REPO="tiantaiyang/claude-skills"
 BRANCH="${CLAUDE_SKILLS_BRANCH:-main}"
 DEST="${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}"
-WANTED=("$@")
+WANTED=()
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --cursor)
+      DEST="$HOME/.cursor/skills"
+      shift
+      ;;
+    --dest)
+      if [ $# -lt 2 ]; then
+        echo "ERROR: --dest requires a path" >&2
+        exit 1
+      fi
+      DEST="$2"
+      shift 2
+      ;;
+    --help|-h)
+      echo "Usage: bash -s [--cursor] [--dest DIR] [skill-name ...]"
+      echo "  no skill names  install every skill"
+      echo "  --cursor        install into ~/.cursor/skills"
+      echo "  --dest DIR      install into DIR (overrides --cursor)"
+      exit 0
+      ;;
+    --)
+      shift
+      WANTED+=("$@")
+      break
+      ;;
+    -*)
+      echo "ERROR: unknown flag: $1" >&2
+      echo "Usage: bash -s [--cursor] [--dest DIR] [skill-name ...]" >&2
+      exit 1
+      ;;
+    *)
+      WANTED+=("$1")
+      shift
+      ;;
+  esac
+done
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -82,5 +121,5 @@ for name in "${available[@]}"; do
 done
 
 echo ""
-echo "Done ($installed skill(s) installed)."
-echo "Restart Claude Code or start a new session to pick them up."
+echo "Done ($installed skill(s) installed to $DEST)."
+echo "Restart Claude Code / Cursor or start a new session to pick them up."
