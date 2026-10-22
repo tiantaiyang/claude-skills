@@ -8,6 +8,7 @@ Reusable [Claude Code](https://claude.com/claude-code) skills.
 |---|---|
 | [`commit-pr`](skills/commit-pr/SKILL.md) | Commit the current branch in **one** repo, push it, and open a PR. Default target is `develop`. Merge direction is one-way: conflicts are resolved on a temp branch cut from the target — the working branch never receives the target's history. |
 | [`jira-batch-bug-fix`](skills/jira-batch-bug-fix/SKILL.md) | Batch-analyze and fix Jira bugs found by a label under a main ticket: cleans the workspace, checks out the main ticket's branches, writes a per-ticket analysis doc, fixes bugs in parallel with one subagent per ticket, opens PRs to `develop`, and handles the two-phase Jira status transitions (`DEV IN PROGRESS` → `TEST SERVER(VERIFYING)`). |
+| [`ticket-docs-publish`](skills/ticket-docs-publish/SKILL.md) | Give it a Jira ticket id: finds every workspace repo the ticket touches (branches, commits, ticket text), skips the default-excluded repos, runs one subagent per repo that calls `/ez-spec` → `/ez-plan` → `/ez-publish`, and publishes all Spec/Plan pages under one shared Confluence ticket page (staggered so it is created exactly once). |
 
 ## Install
 
@@ -83,3 +84,27 @@ e.g. `/commit-pr ez-report-agent` or `/commit-pr htm-backend 到 master 分支`
 e.g. `/jira-batch-bug-fix label bug_0730_customreport 主ticket HT5-42210`
 
 After your testing passes, tell Claude "测试通过" (tests passed) to trigger phase 2 (bulk transition to TEST SERVER(VERIFYING)).
+
+---
+
+## ticket-docs-publish
+
+### Prerequisites
+
+- The `ez-engineering` plugin (`ez-spec`, `ez-plan`, `ez-publish` skills).
+- Atlassian MCP connected (Jira read + Confluence read/write).
+- Run it from the workspace root that holds the repos (e.g. `~/tyre/native`).
+
+### Usage
+
+```
+/ticket-docs-publish <TICKET-ID>
+/ticket-docs-publish <TICKET-ID> 除了 <repo> <repo>      → add exclusions
+/ticket-docs-publish <TICKET-ID> 包括 databases          → drop a default exclusion
+/ticket-docs-publish <TICKET-ID> 只要 <repo> <repo>      → restrict to these repos
+```
+
+Default exclusions: `databases`, `ez-conversation-agent`, `ez-agent-kit`, `ez-a2ui`.
+
+Pages land at `HPD › Releases › release/MMDDYYYY (ticket fixVersion name) › <TICKET-ID> - <summary> › [<TICKET-ID>][<dev_id>][<repo>] - Spec | Plan`.
+Each repo's `.ez-ai/config.yaml` publish block is created or fixed when needed; nothing is committed.

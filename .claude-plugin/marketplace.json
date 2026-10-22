@@ -7,7 +7,7 @@
     {
       "name": "jira-batch-bug-fix",
       "source": "./",
-      "description": "hireEZ Claude Code skills catalog: commit-pr (one-repo commit + one-way PR) and jira-batch-bug-fix (batch-analyze and fix Jira bugs by label)."
+      "description": "hireEZ Claude Code skills catalog: commit-pr (one-repo commit + one-way PR), jira-batch-bug-fix (batch-analyze and fix Jira bugs by label) and ticket-docs-publish (spec + plan + Confluence publish for every repo a ticket touches)."
     }
   ]
 }
