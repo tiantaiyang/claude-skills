@@ -1,6 +1,6 @@
 ---
 name: jira-batch-bug-fix
-description: Use when the user asks to batch-fix Jira bugs found by a Jira label under a main/parent ticket — e.g. "修复 label XXX 下的所有 bug", "batch fix bugs for HT5-272", or provides a Jira label plus a main ticket ID and asks to analyze and fix each unresolved bug ticket one by one. Also use when the user later reports "测试通过 / tests passed" for a previous batch-fix round (phase 2: bulk status transition).
+description: "Use when the user asks to batch-fix Jira bugs found by a Jira label under a main/parent ticket — e.g. '修复 label XXX 下的所有 bug', 'batch fix bugs for HT5-272', or provides a Jira label plus a main ticket ID and asks to analyze and fix each unresolved bug ticket one by one. Also use when the user later reports '测试通过 / tests passed' for a previous batch-fix round (phase 2: bulk status transition)."
 ---
 
 # Jira Batch Bug Fix (by Label + Main Ticket)
